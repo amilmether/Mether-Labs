@@ -5,6 +5,8 @@ import axios from "axios";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Eye, Users, Folder, MessageSquare, Mail, Calendar, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { API_URL } from "@/config";
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({ total_views: 0, unique_visitors: 0 });
@@ -22,28 +24,41 @@ export default function AdminDashboard() {
         { name: 'Sun', views: 34 },
     ];
 
+    const router = useRouter();
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const sRes = await axios.get("http://localhost:8000/api/stats");
+                const sRes = await axios.get(`${API_URL}/api/stats`);
                 setStats(sRes.data);
 
-                const pRes = await axios.get("http://localhost:8000/api/projects");
+                const pRes = await axios.get(`${API_URL}/api/projects`);
                 setProjectsCount(pRes.data.length);
 
                 const token = localStorage.getItem("token");
                 if (token) {
-                    const mRes = await axios.get("http://localhost:8000/api/messages", {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    setMessages(mRes.data);
+                    try {
+                        const mRes = await axios.get(`${API_URL}/api/messages`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setMessages(mRes.data);
+                    } catch (e: any) {
+                        if (e.response && e.response.status === 401) {
+                            localStorage.removeItem("token");
+                            router.push("/admin/login");
+                        } else {
+                            console.error(e);
+                        }
+                    }
+                } else {
+                    router.push("/admin/login");
                 }
             } catch (e) {
                 console.error(e);
             }
         };
         fetchData();
-    }, []);
+    }, [router]);
 
     return (
         <div className="min-h-screen bg-black text-white py-20">

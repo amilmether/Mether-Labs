@@ -33,7 +33,7 @@ function ContactForm() {
 
     const fetchProfile = async () => {
         try {
-            const res = await axios.get("http://localhost:8000/api/profile");
+            const res = await axios.get("/api/profile");
             setProfile(res.data);
             setEditedProfile({
                 location: res.data.location || "Kottayam, Kerala, India",
@@ -53,7 +53,7 @@ function ContactForm() {
         }
 
         try {
-            await axios.put("http://localhost:8000/api/profile", {
+            await axios.put("/api/profile", {
                 ...profile,
                 location: editedProfile.location,
                 whatsapp: editedProfile.whatsapp
@@ -72,7 +72,7 @@ function ContactForm() {
         e.preventDefault();
         setStatus("sending");
         try {
-            await axios.post("http://localhost:8000/api/contact", formData);
+            await axios.post("/api/contact", formData);
             setStatus("success");
             setFormData({ name: "", email: "", type: "General Inquiry", budget: "", whatsapp: "", message: "" });
         } catch (err) {

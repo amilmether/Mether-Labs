@@ -18,7 +18,7 @@ export default function Login() {
             formData.append("username", username);
             formData.append("password", password);
 
-            const res = await axios.post("http://localhost:8000/token", formData);
+            const res = await axios.post("/api/token", formData);
             localStorage.setItem("token", res.data.access_token);
             router.push("/admin");
         } catch (err) {

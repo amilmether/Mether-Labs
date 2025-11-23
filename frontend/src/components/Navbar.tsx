@@ -2,87 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Home, Code, Briefcase, Mail } from "lucide-react";
 
-const navItems = [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Services", path: "/services" },
-    { name: "Projects", path: "/projects" },
-    { name: "Contact", path: "/contact" },
-];
-
-export const Navbar = () => {
+export default function Navbar() {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
+
+    const navItems = [
+        { name: "Home", href: "/", icon: Home },
+        { name: "Work", href: "/projects", icon: Code },
+        { name: "Services", href: "/services", icon: Briefcase },
+        { name: "Contact", href: "/contact", icon: Mail },
+    ];
+
+    const isActive = (href: string) => {
+        if (href === "/") return pathname === "/";
+        return pathname.startsWith(href);
+    };
 
     return (
-        <nav className="fixed top-0 w-full z-40 bg-black/80 backdrop-blur-md border-b border-white/5">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-20 items-center">
-                    <Link href="/" className="text-xl font-bold tracking-tighter text-white flex items-center gap-2">
-                        <div className="w-3 h-3 bg-white rounded-full" />
-                        METHER LABS
-                    </Link>
+        // Floating Navbar at bottom for all devices
+        <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+            <div className="bg-zinc-950/90 backdrop-blur-xl border border-zinc-800/50 rounded-full px-2 py-2 shadow-2xl">
+                <div className="flex items-center gap-1">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.href);
 
-                    {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        {navItems.map((item) => (
+                        return (
                             <Link
-                                key={item.path}
-                                href={item.path}
-                                className={cn(
-                                    "text-sm font-medium transition-colors hover:text-white",
-                                    pathname === item.path ? "text-white" : "text-zinc-500"
-                                )}
+                                key={item.name}
+                                href={item.href}
+                                className={`
+                                    flex items-center gap-2 px-4 py-2.5 rounded-full
+                                    transition-all duration-300 ease-out
+                                    ${active
+                                        ? "bg-white text-black font-medium shadow-lg"
+                                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                                    }
+                                `}
                             >
-                                {item.name}
+                                <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                                <span className="text-xs font-medium">{item.name}</span>
                             </Link>
-                        ))}
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden p-2 text-zinc-400 hover:text-white"
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        {isOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
+                        );
+                    })}
                 </div>
             </div>
-
-            {/* Mobile Nav */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-black border-b border-zinc-800 overflow-hidden"
-                    >
-                        <div className="px-4 pt-2 pb-4 space-y-1">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.path}
-                                    href={item.path}
-                                    onClick={() => setIsOpen(false)}
-                                    className={cn(
-                                        "block px-3 py-4 text-lg font-medium border-b border-zinc-900 last:border-0",
-                                        pathname === item.path
-                                            ? "text-white"
-                                            : "text-zinc-500 hover:text-zinc-300"
-                                    )}
-                                >
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </nav>
     );
-};
+}

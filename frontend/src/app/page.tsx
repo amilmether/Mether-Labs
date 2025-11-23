@@ -19,7 +19,7 @@ export default function Home() {
   }, []);
 
   const fetchProjects = () => {
-    axios.get("http://localhost:8000/api/projects?featured=true")
+    axios.get("/api/projects?featured=true")
       .then(res => setFeaturedProjects(res.data))
       .catch(err => console.error(err));
   };
@@ -28,7 +28,7 @@ export default function Home() {
     if (!confirm("Delete this project?")) return;
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:8000/api/projects/${id}`, {
+      await axios.delete(`/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProjects();

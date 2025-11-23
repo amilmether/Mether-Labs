@@ -13,7 +13,7 @@ export default function Services() {
     const [services, setServices] = useState<any[]>([]);
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/services")
+        axios.get("/api/services")
             .then(res => setServices(res.data))
             .catch(err => console.error(err));
     }, []);
@@ -22,7 +22,7 @@ export default function Services() {
         if (!confirm("Delete this service?")) return;
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`http://localhost:8000/api/services/${id}`, {
+            await axios.delete(`/api/services/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setServices(services.filter(s => s.id !== id));

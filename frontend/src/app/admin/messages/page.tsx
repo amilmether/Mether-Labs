@@ -11,7 +11,7 @@ export default function MessagesManager() {
         const fetchMessages = async () => {
             const token = localStorage.getItem("token");
             try {
-                const res = await axios.get("http://localhost:8000/api/messages", {
+                const res = await axios.get("/api/messages", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setMessages(res.data);

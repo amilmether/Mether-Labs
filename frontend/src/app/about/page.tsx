@@ -47,11 +47,11 @@ export default function About() {
     const fetchAllData = async () => {
         try {
             const [contentRes, expRes, timelineRes, skillsRes, categoriesRes] = await Promise.all([
-                axios.get("http://localhost:8000/api/about-content"),
-                axios.get("http://localhost:8000/api/experiences"),
-                axios.get("http://localhost:8000/api/timeline"),
-                axios.get("http://localhost:8000/api/skills"),
-                axios.get("http://localhost:8000/api/skill-categories")
+                axios.get("/api/about-content"),
+                axios.get("/api/experiences"),
+                axios.get("/api/timeline"),
+                axios.get("/api/skills"),
+                axios.get("/api/skill-categories")
             ]);
 
             setContent(contentRes.data);
@@ -124,7 +124,7 @@ export default function About() {
         }
 
         try {
-            await axios.put("http://localhost:8000/api/about-content", content, {
+            await axios.put("/api/about-content", content, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setIsEditing(false);
@@ -151,7 +151,7 @@ export default function About() {
         }
 
         try {
-            const res = await axios.post("http://localhost:8000/api/experiences", newExperience, {
+            const res = await axios.post("/api/experiences", newExperience, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setExperiences([...experiences, res.data]);
@@ -166,7 +166,7 @@ export default function About() {
 
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`http://localhost:8000/api/experiences/${id}`, {
+            await axios.delete(`/api/experiences/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setExperiences(experiences.filter(e => e.id !== id));
@@ -186,7 +186,7 @@ export default function About() {
         }
 
         try {
-            const res = await axios.post("http://localhost:8000/api/timeline", newTimelineItem, {
+            const res = await axios.post("/api/timeline", newTimelineItem, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTimeline([...timeline, res.data]);
@@ -201,7 +201,7 @@ export default function About() {
 
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`http://localhost:8000/api/timeline/${id}`, {
+            await axios.delete(`/api/timeline/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTimeline(timeline.filter(t => t.id !== id));
@@ -221,7 +221,7 @@ export default function About() {
         }
 
         try {
-            const res = await axios.post("http://localhost:8000/api/skill-categories",
+            const res = await axios.post("/api/skill-categories",
                 { name: newCategoryName, display_order: skillCategories.length },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -238,7 +238,7 @@ export default function About() {
 
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`http://localhost:8000/api/skill-categories/${id}`, {
+            await axios.delete(`/api/skill-categories/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSkillCategories(skillCategories.filter(c => c.id !== id));
@@ -262,7 +262,7 @@ export default function About() {
         }
 
         try {
-            const res = await axios.post("http://localhost:8000/api/skills",
+            const res = await axios.post("/api/skills",
                 { name: newSkill, category: skillCategory },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -276,7 +276,7 @@ export default function About() {
     const deleteSkill = async (id: number) => {
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`http://localhost:8000/api/skills/${id}`, {
+            await axios.delete(`/api/skills/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSkills(skills.filter(s => s.id !== id));

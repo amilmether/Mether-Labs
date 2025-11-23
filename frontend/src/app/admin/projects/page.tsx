@@ -28,7 +28,7 @@ export default function ProjectsManager() {
 
     const fetchProjects = async () => {
         try {
-            const res = await axios.get("http://localhost:8000/api/projects");
+            const res = await axios.get("/api/projects");
             setProjects(res.data);
         } catch (e) {
             console.error(e);
@@ -64,7 +64,7 @@ export default function ProjectsManager() {
                 const formData = new FormData();
                 formData.append("file", files[i]);
 
-                const res = await axios.post("http://localhost:8000/api/upload-image", formData, {
+                const res = await axios.post("/api/upload-image", formData, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "multipart/form-data"
@@ -112,11 +112,11 @@ export default function ProjectsManager() {
 
         try {
             if (editingId) {
-                await axios.put(`http://localhost:8000/api/projects/${editingId}`, payload, {
+                await axios.put(`/api/projects/${editingId}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                await axios.post("http://localhost:8000/api/projects", payload, {
+                await axios.post("/api/projects", payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -146,7 +146,7 @@ export default function ProjectsManager() {
         }
 
         try {
-            await axios.delete(`http://localhost:8000/api/projects/${id}`, {
+            await axios.delete(`/api/projects/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchProjects();
@@ -404,8 +404,19 @@ export default function ProjectsManager() {
                                         {form.images && (
                                             <div className="grid grid-cols-3 gap-2">
                                                 {form.images.split(",").map((url, i) => (
-                                                    <div key={i} className="aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
+                                                    <div key={i} className="relative aspect-video bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 group">
                                                         <img src={url.trim()} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const images = form.images.split(",").map(u => u.trim()).filter((_, idx) => idx !== i);
+                                                                setForm({ ...form, images: images.join(", ") });
+                                                            }}
+                                                            className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            title="Delete image"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>

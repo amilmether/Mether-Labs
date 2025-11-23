@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int    @id @default(autoincrement())
+  username       String @unique
+  hashed_password String
+}
+
+model Profile {
+  id       Int     @id @default(autoincrement())
+  name     String
+  bio      String
+  role     String
+  location String
+  status   String
+  whatsapp String?
+}
+
+model Project {
+  id                  Int     @id @default(autoincrement())
+  title               String
+  slug                String  @unique
+  short_description   String
+  detailed_description String
+  stack               String  // Stored as JSON string or comma-separated
+  category            String
+  priority            String
+  link                String?
+  github_link         String?
+  images              String  // Stored as JSON string
+  featured            Boolean @default(false)
+}
+
+model Service {
+  id                  Int     @id @default(autoincrement())
+  title               String
+  short_description   String
+  detailed_description String
+  price_from          String
+  deliverables        String  // Stored as JSON string
+  stack               String  // Stored as JSON string
+  is_active           Boolean @default(true)
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  type      String
+  budget    String?
+  whatsapp  String?
+  message   String
+  read      Boolean  @default(false)
+  timestamp DateTime @default(now())
+}
+
+model Testimonial {
+  id          Int    @id @default(autoincrement())
+  client_name String
+  role        String
+  text        String
+}
+
+model AboutContent {
+  id     Int    @id @default(autoincrement())
+  intro1 String
+  intro2 String
+}
+
+model Experience {
+  id          Int     @id @default(autoincrement())
+  title       String
+  company     String
+  start_date  String
+  end_date    String?
+  current     Boolean @default(false)
+  description String
+}
+
+model TimelineItem {
+  id          Int    @id @default(autoincrement())
+  date        String
+  title       String
+  description String
+}
+
+model SkillCategory {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  display_order Int     @default(0)
+  skills        Skill[]
+}
+
+model Skill {
+  id            Int           @id @default(autoincrement())
+  name          String
+  category      String
+  categoryRel   SkillCategory @relation(fields: [category], references: [name], onDelete: Cascade)
+}
+
+model Analytics {
+  id        Int      @id @default(autoincrement())
+  ip_hash   String
+  path      String
+  timestamp DateTime @default(now())
+}

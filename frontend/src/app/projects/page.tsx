@@ -10,7 +10,7 @@ export default function Projects() {
     const [filter, setFilter] = useState("All");
 
     useEffect(() => {
-        axios.get("http://localhost:8000/api/projects")
+        axios.get("/api/projects")
             .then(res => setProjects(res.data))
             .catch(err => console.error(err));
     }, []);

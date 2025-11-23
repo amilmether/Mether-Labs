@@ -12,7 +12,7 @@ export default function ProjectDetail() {
 
     useEffect(() => {
         if (slug) {
-            axios.get(`http://localhost:8000/api/projects/${slug}`)
+            axios.get(`/api/projects/${slug}`)
                 .then(res => setProject(res.data))
                 .catch(err => console.error(err));
         }

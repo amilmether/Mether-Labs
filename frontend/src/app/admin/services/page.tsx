@@ -24,7 +24,7 @@ export default function ServicesManager() {
 
     const fetchServices = async () => {
         try {
-            const res = await axios.get("http://localhost:8000/api/services");
+            const res = await axios.get("/api/services");
             setServices(res.data);
         } catch (e) {
             console.error(e);
@@ -58,11 +58,11 @@ export default function ServicesManager() {
 
         try {
             if (editingId) {
-                await axios.put(`http://localhost:8000/api/services/${editingId}`, payload, {
+                await axios.put(`/api/services/${editingId}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                await axios.post("http://localhost:8000/api/services", payload, {
+                await axios.post("/api/services", payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -92,7 +92,7 @@ export default function ServicesManager() {
         }
 
         try {
-            await axios.delete(`http://localhost:8000/api/services/${id}`, {
+            await axios.delete(`/api/services/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchServices();
