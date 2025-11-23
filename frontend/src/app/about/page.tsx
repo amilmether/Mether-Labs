@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Edit2, Save, X, Plus, Trash2, Calendar } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import axios from "axios";
 
-export default function About() {
+function AboutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const isEditMode = searchParams.get("edit") === "true";
@@ -737,5 +737,20 @@ export default function About() {
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+export default function About() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-zinc-500">Loading...</p>
+                </div>
+            </div>
+        }>
+            <AboutContent />
+        </Suspense>
     );
 }
