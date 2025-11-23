@@ -1,0 +1,57 @@
+#!/bin/bash
+
+echo "================================================"
+echo "Gmail SMTP Setup for Portfolio Website"
+echo "================================================"
+echo ""
+echo "Your email: amilmether.dev@gmail.com"
+echo ""
+echo "To enable email notifications, you need a Gmail App Password."
+echo ""
+echo "📋 Follow these steps:"
+echo ""
+echo "1. Open this link in your browser:"
+echo "   https://myaccount.google.com/apppasswords"
+echo ""
+echo "2. Sign in with amilmether.dev@gmail.com"
+echo ""
+echo "3. If you see 'App passwords aren't available', you need to:"
+echo "   - Enable 2-Step Verification first at:"
+echo "     https://myaccount.google.com/security"
+echo ""
+echo "4. Once on App Passwords page:"
+echo "   - Select app: Mail"
+echo "   - Select device: Other (Custom name)"
+echo "   - Name it: Portfolio Website"
+echo "   - Click Generate"
+echo ""
+echo "5. Copy the 16-character password (remove spaces)"
+echo ""
+echo "6. Edit the .env file and paste it:"
+echo "   SMTP_PASSWORD=your_password_here"
+echo ""
+echo "7. Restart the backend server"
+echo ""
+echo "================================================"
+echo ""
+read -p "Press Enter to open the App Passwords page in your browser..."
+
+# Try to open the URL in the default browser
+if command -v xdg-open > /dev/null; then
+    xdg-open "https://myaccount.google.com/apppasswords"
+elif command -v gnome-open > /dev/null; then
+    gnome-open "https://myaccount.google.com/apppasswords"
+elif command -v open > /dev/null; then
+    open "https://myaccount.google.com/apppasswords"
+else
+    echo "Please manually open: https://myaccount.google.com/apppasswords"
+fi
+
+echo ""
+echo "After getting your app password, edit .env file:"
+echo "nano .env"
+echo ""
+echo "Then restart the backend:"
+echo "source backend/venv/bin/activate"
+echo "uvicorn backend.main:app --reload --port 8000"
+echo ""
