@@ -4,9 +4,10 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const token = getTokenFromRequest(request);
         if (!token || !verifyToken(token)) {
             return NextResponse.json(
@@ -18,7 +19,7 @@ export async function PUT(
         const body = await request.json();
 
         const experience = await prisma.experience.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
             data: body,
         });
 
@@ -33,9 +34,10 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const token = getTokenFromRequest(request);
         if (!token || !verifyToken(token)) {
             return NextResponse.json(
@@ -45,7 +47,7 @@ export async function DELETE(
         }
 
         await prisma.experience.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });

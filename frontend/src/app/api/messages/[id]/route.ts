@@ -4,9 +4,10 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const token = getTokenFromRequest(request);
         if (!token || !verifyToken(token)) {
             return NextResponse.json(
@@ -16,7 +17,7 @@ export async function DELETE(
         }
 
         await prisma.message.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });
