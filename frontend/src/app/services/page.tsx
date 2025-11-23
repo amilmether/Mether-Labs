@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { CheckCircle, Edit2, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function Services() {
+function ServicesContent() {
     const searchParams = useSearchParams();
     const isEditMode = searchParams.get("edit") === "true";
 
@@ -101,5 +101,20 @@ export default function Services() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function Services() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-black text-white">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-zinc-500">Loading...</p>
+                </div>
+            </div>
+        }>
+            <ServicesContent />
+        </Suspense>
     );
 }
