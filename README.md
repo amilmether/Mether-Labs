@@ -1,207 +1,36 @@
-# Portfolio Website - Full Stack Next.js
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A modern, full-stack portfolio website built with Next.js, featuring a complete admin panel for content management.
+## Getting Started
 
-## 🚀 Tech Stack
+First, run the development server:
 
-- **Frontend**: Next.js 16 (React, TypeScript)
-- **Backend**: Next.js API Routes (Serverless)
-- **Database**: Prisma ORM + SQLite (dev) / PostgreSQL (production)
-- **Auth**: JWT with bcrypt
-- **Email**: Nodemailer (Gmail SMTP)
-- **Styling**: Tailwind CSS
-- **Deployment**: Vercel
-
-## ✨ Features
-
-### Public Site
-- 🏠 Homepage with featured projects
-- 📁 Projects showcase
-- 💼 Services listing
-- 👤 About page with experience & timeline
-- 📧 Contact form with email notifications
-- 💬 Testimonials
-
-### Admin Panel
-- 🔐 Secure login
-- ✏️ Full CRUD for all content
-- 📊 Analytics dashboard
-- 📬 Message management
-- 🎨 Edit mode on all pages
-
-## 🏃 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone <your-repo-url>
-cd <repo-name>
-```
-
-2. **Install dependencies**
-```bash
-cd frontend
-npm install
-```
-
-3. **Setup environment variables**
-Create `frontend/.env`:
-```env
-DATABASE_URL="file:./dev.db"
-SMTP_USER="your-email@gmail.com"
-SMTP_PASSWORD="your-gmail-app-password"
-JWT_SECRET="your-random-secret-key"
-```
-
-4. **Initialize database**
-```bash
-npx prisma db push
-npx tsx prisma/seed.ts
-```
-
-5. **Run development server**
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Visit `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Default Admin Credentials
-- **Username**: `admin`
-- **Password**: `password`
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-⚠️ **Change these immediately in production!**
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 📁 Project Structure
+## Learn More
 
-```
-frontend/
-├── src/
-│   ├── app/
-│   │   ├── api/              # API routes (backend)
-│   │   ├── admin/            # Admin pages
-│   │   ├── about/
-│   │   ├── contact/
-│   │   ├── projects/
-│   │   └── services/
-│   ├── components/           # React components
-│   ├── lib/                  # Utilities
-│   │   ├── prisma.ts
-│   │   └── auth.ts
-│   └── config.ts
-├── prisma/
-│   ├── schema.prisma         # Database schema
-│   └── seed.ts
-└── public/
-```
+To learn more about Next.js, take a look at the following resources:
 
-## 🗄️ Database Schema
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- **User** - Admin authentication
-- **Profile** - Personal info
-- **Project** - Portfolio projects
-- **Service** - Services offered
-- **Message** - Contact form submissions
-- **Testimonial** - Client testimonials
-- **AboutContent** - About page intro
-- **Experience** - Work experience
-- **TimelineItem** - Career timeline
-- **SkillCategory** - Skill groupings
-- **Skill** - Individual skills
-- **Analytics** - Page view tracking
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## 🚀 Deployment
+## Deploy on Vercel
 
-### Vercel (Recommended)
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-1. **Push to GitHub**
-```bash
-git add .
-git commit -m "Initial commit"
-git push
-```
-
-2. **Deploy to Vercel**
-- Go to [vercel.com](https://vercel.com)
-- Import your repository
-- Set **Root Directory** to `frontend`
-- Add environment variables
-- Deploy!
-
-3. **Production Database (Supabase)**
-- Create a Supabase project
-- Get PostgreSQL connection string
-- Update `DATABASE_URL` in Vercel
-- Run `npx prisma db push` locally to create tables
-
-## 📧 Email Setup
-
-1. Enable 2FA on your Gmail account
-2. Generate an App Password
-3. Add to `.env`:
-```env
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-16-char-app-password
-```
-
-## 🔒 Security Features
-
-- JWT-based authentication
-- Password hashing with bcrypt
-- SQL injection protection (Prisma)
-- Environment variable protection
-- CORS handled by Next.js
-
-## 📝 API Endpoints
-
-All endpoints are in `src/app/api/`:
-
-- `POST /api/token` - Login
-- `GET /api/stats` - Analytics
-- `GET/PUT /api/profile` - Profile
-- `GET/POST /api/projects` - Projects
-- `GET/POST /api/services` - Services
-- `POST /api/contact` - Contact form
-- `GET /api/messages` - Messages (admin)
-- And more...
-
-## 🛠️ Development
-
-### View Database
-```bash
-npx prisma studio
-```
-
-### Reset Database
-```bash
-rm dev.db
-npx prisma db push
-npx tsx prisma/seed.ts
-```
-
-### Add New Model
-1. Update `prisma/schema.prisma`
-2. Run `npx prisma db push`
-3. Create API routes in `src/app/api/`
-
-## 📚 Documentation
-
-- [Migration Guide](MIGRATION_COMPLETE.md) - Full migration details
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Deployment instructions
-
-## 🤝 Contributing
-
-This is a personal portfolio project, but feel free to fork and customize for your own use!
-
-## 📄 License
-
-MIT License - feel free to use this for your own portfolio.
-
----
-
-**Built with ❤️ using Next.js**
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
