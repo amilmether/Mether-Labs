@@ -4,7 +4,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -15,15 +15,17 @@ export async function PUT(
             );
         }
 
+        const { id } = await params;
         const body = await request.json();
 
         const item = await prisma.timelineItem.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
             data: body,
         });
 
         return NextResponse.json(item);
     } catch (error) {
+        console.error("Timeline update error:", error);
         return NextResponse.json(
             { detail: 'Internal server error' },
             { status: 500 }
@@ -33,7 +35,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -44,12 +46,15 @@ export async function DELETE(
             );
         }
 
+        const { id } = await params;
+
         await prisma.timelineItem.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });
     } catch (error) {
+        console.error("Timeline delete error:", error);
         return NextResponse.json(
             { detail: 'Internal server error' },
             { status: 500 }

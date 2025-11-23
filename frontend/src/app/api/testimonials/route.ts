@@ -7,13 +7,9 @@ export async function GET() {
         const testimonials = await prisma.testimonial.findMany({
             orderBy: { id: 'desc' },
         });
-
         return NextResponse.json(testimonials);
     } catch (error) {
-        return NextResponse.json(
-            { detail: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
 }
 
@@ -21,23 +17,20 @@ export async function POST(request: NextRequest) {
     try {
         const token = getTokenFromRequest(request);
         if (!token || !verifyToken(token)) {
-            return NextResponse.json(
-                { detail: 'Unauthorized' },
-                { status: 401 }
-            );
+            return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await request.json();
-
         const testimonial = await prisma.testimonial.create({
-            data: body,
+            data: {
+                client_name: body.client_name,
+                role: body.role,
+                text: body.text,
+            },
         });
 
         return NextResponse.json(testimonial);
     } catch (error) {
-        return NextResponse.json(
-            { detail: 'Internal server error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
 }

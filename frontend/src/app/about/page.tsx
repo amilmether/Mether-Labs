@@ -1,31 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useSearchParams } from "next/navigation";
-import { Edit2, Save, X, Plus, Trash2 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Edit2, Save, X, Plus, Trash2, Calendar } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 
 export default function About() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const isEditMode = searchParams.get("edit") === "true";
 
+    const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editSection, setEditSection] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
 
-    const [content, setContent] = useState({
-        intro1: "",
-        intro2: ""
-    });
-
+    // Data States
+    const [content, setContent] = useState({ intro1: "", intro2: "" });
     const [experiences, setExperiences] = useState<any[]>([]);
-    const [timeline, setTimeline] = useState<any[]>([]);
     const [skills, setSkills] = useState<any[]>([]);
     const [skillCategories, setSkillCategories] = useState<any[]>([]);
+    const [testimonials, setTestimonials] = useState<any[]>([]);
+    const [timeline, setTimeline] = useState<any[]>([]);
 
+    // Form States
     const [newExperience, setNewExperience] = useState({
         title: "",
         company: "",
@@ -34,33 +33,42 @@ export default function About() {
         current: false,
         description: ""
     });
-    const [newTimelineItem, setNewTimelineItem] = useState({ date: "", title: "", description: "" });
+    const [newCategoryName, setNewCategoryName] = useState("");
     const [newSkill, setNewSkill] = useState("");
     const [skillCategory, setSkillCategory] = useState("");
-    const [newCategoryName, setNewCategoryName] = useState("");
+    const [newTestimonial, setNewTestimonial] = useState({ client_name: "", role: "", text: "" });
+    const [newTimelineItem, setNewTimelineItem] = useState({
+        start_date: "",
+        end_date: "",
+        current: false,
+        title: "",
+        description: ""
+    });
 
-    // Fetch all data on mount
     useEffect(() => {
+        const token = localStorage.getItem("token");
+        setIsAdmin(!!token);
         fetchAllData();
     }, []);
 
     const fetchAllData = async () => {
         try {
-            const [contentRes, expRes, timelineRes, skillsRes, categoriesRes] = await Promise.all([
-                axios.get("/api/about-content"),
-                axios.get("/api/experiences"),
-                axios.get("/api/timeline"),
+            const [contentRes, expRes, skillsRes, categoriesRes, testRes, timelineRes] = await Promise.all([
+                axios.get("/api/about"),
+                axios.get("/api/experience"),
                 axios.get("/api/skills"),
-                axios.get("/api/skill-categories")
+                axios.get("/api/skill-categories"),
+                axios.get("/api/testimonials"),
+                axios.get("/api/timeline")
             ]);
 
             setContent(contentRes.data);
             setExperiences(expRes.data);
-            setTimeline(timelineRes.data);
             setSkills(skillsRes.data);
             setSkillCategories(categoriesRes.data);
+            setTestimonials(testRes.data);
+            setTimeline(timelineRes.data);
 
-            // Set default category if available
             if (categoriesRes.data.length > 0) {
                 setSkillCategory(categoriesRes.data[0].name);
             }
@@ -71,102 +79,40 @@ export default function About() {
         }
     };
 
-    // Calculate duration between two dates
-    const calculateDuration = (start: string, end: string | null, isCurrent: boolean) => {
-        const startDate = new Date(start + "-01");
-        const endDate = isCurrent ? new Date() : new Date((end || start) + "-01");
-
-        const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 +
-            (endDate.getMonth() - startDate.getMonth());
-
-        if (months < 1) return "Less than a month";
-        if (months === 1) return "1 month";
-        if (months < 12) return `${months} months`;
-
-        const years = Math.floor(months / 12);
-        const remainingMonths = months % 12;
-
-        if (remainingMonths === 0) return years === 1 ? "1 year" : `${years} years`;
-        return `${years} ${years === 1 ? 'year' : 'years'} ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}`;
-    };
-
-    // Format date for display
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr + "-01");
-        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    };
-
-    // Sort experiences by start date (newest first)
-    const sortedExperiences = useMemo(() => {
-        return [...experiences].sort((a, b) => b.start_date.localeCompare(a.start_date));
-    }, [experiences]);
-
-    // Sort timeline by date (newest first)
-    const sortedTimeline = useMemo(() => {
-        return [...timeline].sort((a, b) => b.date.localeCompare(a.date));
-    }, [timeline]);
-
-    // Group skills by category
-    const skillsByCategory = useMemo(() => {
-        const grouped: { [key: string]: any[] } = {};
-        skillCategories.forEach(cat => {
-            grouped[cat.name] = skills.filter(s => s.category === cat.name);
-        });
-        return grouped;
-    }, [skills, skillCategories]);
-
-    const handleSave = async () => {
+    const handleSaveContent = async () => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Session expired. Please login again.");
-            router.push("/admin/login");
-            return;
-        }
-
+        if (!token) return;
         try {
-            await axios.put("/api/about-content", content, {
+            await axios.post("/api/about", content, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setIsEditing(false);
             setEditSection(null);
-            alert("Content saved successfully!");
-        } catch (err: any) {
-            if (err.response?.status === 401) {
-                alert("Session expired. Please login again.");
-                router.push("/admin/login");
-            } else {
-                alert("Failed to save: " + (err.response?.data?.detail || err.message));
-            }
+            alert("Content saved!");
+        } catch (err) {
+            alert("Failed to save content");
         }
     };
 
     const addExperience = async () => {
-        if (!newExperience.title || !newExperience.company || !newExperience.start_date) return;
-
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Session expired. Please login again.");
-            router.push("/admin/login");
-            return;
-        }
-
+        if (!token) return;
         try {
-            const res = await axios.post("/api/experiences", newExperience, {
+            const res = await axios.post("/api/experience", newExperience, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setExperiences([...experiences, res.data]);
             setNewExperience({ title: "", company: "", start_date: "", end_date: "", current: false, description: "" });
-        } catch (err: any) {
-            alert("Failed to add: " + (err.response?.data?.detail || err.message));
+        } catch (err) {
+            alert("Failed to add experience");
         }
     };
 
     const deleteExperience = async (id: number) => {
         if (!confirm("Delete this experience?")) return;
-
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`/api/experiences/${id}`, {
+            await axios.delete(`/api/experience/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setExperiences(experiences.filter(e => e.id !== id));
@@ -176,29 +122,21 @@ export default function About() {
     };
 
     const addTimelineItem = async () => {
-        if (!newTimelineItem.date || !newTimelineItem.title) return;
-
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Session expired. Please login again.");
-            router.push("/admin/login");
-            return;
-        }
-
+        if (!token) return;
         try {
             const res = await axios.post("/api/timeline", newTimelineItem, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTimeline([...timeline, res.data]);
-            setNewTimelineItem({ date: "", title: "", description: "" });
-        } catch (err: any) {
-            alert("Failed to add: " + (err.response?.data?.detail || err.message));
+            setNewTimelineItem({ start_date: "", end_date: "", current: false, title: "", description: "" });
+        } catch (err) {
+            alert("Failed to add timeline item");
         }
     };
 
     const deleteTimelineItem = async (id: number) => {
         if (!confirm("Delete this timeline item?")) return;
-
         const token = localStorage.getItem("token");
         try {
             await axios.delete(`/api/timeline/${id}`, {
@@ -212,14 +150,7 @@ export default function About() {
 
     const addCategory = async () => {
         if (!newCategoryName) return;
-
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Session expired. Please login again.");
-            router.push("/admin/login");
-            return;
-        }
-
         try {
             const res = await axios.post("/api/skill-categories",
                 { name: newCategoryName, display_order: skillCategories.length },
@@ -228,14 +159,13 @@ export default function About() {
             setSkillCategories([...skillCategories, res.data]);
             setNewCategoryName("");
             setSkillCategory(res.data.name);
-        } catch (err: any) {
-            alert("Failed to add category: " + (err.response?.data?.detail || err.message));
+        } catch (err) {
+            alert("Failed to add category");
         }
     };
 
     const deleteCategory = async (id: number, name: string) => {
         if (!confirm(`Delete category "${name}" and all its skills?`)) return;
-
         const token = localStorage.getItem("token");
         try {
             await axios.delete(`/api/skill-categories/${id}`, {
@@ -243,9 +173,6 @@ export default function About() {
             });
             setSkillCategories(skillCategories.filter(c => c.id !== id));
             setSkills(skills.filter(s => s.category !== name));
-            if (skillCategory === name && skillCategories.length > 1) {
-                setSkillCategory(skillCategories.find(c => c.id !== id)?.name || "");
-            }
         } catch (err) {
             alert("Delete failed");
         }
@@ -253,14 +180,7 @@ export default function About() {
 
     const addSkill = async () => {
         if (!newSkill || !skillCategory) return;
-
         const token = localStorage.getItem("token");
-        if (!token) {
-            alert("Session expired. Please login again.");
-            router.push("/admin/login");
-            return;
-        }
-
         try {
             const res = await axios.post("/api/skills",
                 { name: newSkill, category: skillCategory },
@@ -268,8 +188,8 @@ export default function About() {
             );
             setSkills([...skills, res.data]);
             setNewSkill("");
-        } catch (err: any) {
-            alert("Failed to add: " + (err.response?.data?.detail || err.message));
+        } catch (err) {
+            alert("Failed to add skill");
         }
     };
 
@@ -285,6 +205,74 @@ export default function About() {
         }
     };
 
+    const addTestimonial = async () => {
+        const token = localStorage.getItem("token");
+        try {
+            const res = await axios.post("/api/testimonials", newTestimonial, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTestimonials([...testimonials, res.data]);
+            setNewTestimonial({ client_name: "", role: "", text: "" });
+        } catch (err) {
+            alert("Failed to add testimonial");
+        }
+    };
+
+    const deleteTestimonial = async (id: number) => {
+        if (!confirm("Delete this testimonial?")) return;
+        const token = localStorage.getItem("token");
+        try {
+            await axios.delete(`/api/testimonials/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTestimonials(testimonials.filter(t => t.id !== id));
+        } catch (err) {
+            alert("Delete failed");
+        }
+    };
+
+    const calculateDuration = (start: string, end: string | null, isCurrent: boolean) => {
+        if (!start) return "";
+        const startDate = new Date(start + "-01");
+        const endDate = isCurrent ? new Date() : (end ? new Date(end + "-01") : new Date());
+
+        let months = (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+            (endDate.getMonth() - startDate.getMonth());
+        months += 1; // Include start month
+
+        if (months < 1) return "Less than a month";
+
+        const years = Math.floor(months / 12);
+        const remainingMonths = months % 12;
+
+        const yearStr = years > 0 ? `${years} ${years === 1 ? 'yr' : 'yrs'}` : '';
+        const monthStr = remainingMonths > 0 ? `${remainingMonths} ${remainingMonths === 1 ? 'mo' : 'mos'}` : '';
+
+        return [yearStr, monthStr].filter(Boolean).join(' ');
+    };
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return "";
+        const date = new Date(dateStr + "-01");
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    };
+
+    const sortedExperiences = useMemo(() => {
+        return [...experiences].sort((a, b) => b.start_date.localeCompare(a.start_date));
+    }, [experiences]);
+
+    const sortedTimeline = useMemo(() => {
+        return [...timeline].sort((a, b) => b.start_date.localeCompare(a.start_date));
+    }, [timeline]);
+
+    const skillsByCategory = useMemo(() => {
+        const grouped: { [key: string]: any[] } = {};
+        skillCategories.forEach(cat => {
+            grouped[cat.name] = skills.filter(s => s.category === cat.name);
+        });
+        return grouped;
+    }, [skills, skillCategories]);
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -298,7 +286,8 @@ export default function About() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-32">
-            {isEditMode && !isEditing && (
+            {/* Edit Controls */}
+            {(isAdmin || isEditMode) && !isEditing && (
                 <button
                     onClick={() => setIsEditing(true)}
                     className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:bg-zinc-200 transition-colors shadow-2xl"
@@ -316,8 +305,9 @@ export default function About() {
                         <X size={20} />
                     </button>
                     <button
-                        onClick={handleSave}
+                        onClick={handleSaveContent}
                         className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:bg-zinc-200 transition-colors shadow-2xl"
+                        title="Save Content Changes"
                     >
                         <Save size={20} />
                     </button>
@@ -340,12 +330,14 @@ export default function About() {
                                 onChange={e => setContent({ ...content, intro1: e.target.value })}
                                 className="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors resize-none"
                                 rows={3}
+                                placeholder="Intro paragraph 1"
                             />
                             <textarea
                                 value={content.intro2}
                                 onChange={e => setContent({ ...content, intro2: e.target.value })}
                                 className="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors resize-none"
                                 rows={3}
+                                placeholder="Intro paragraph 2"
                             />
                         </>
                     ) : (
@@ -356,7 +348,7 @@ export default function About() {
                     )}
                 </div>
 
-                {/* Experience Section - keeping existing code */}
+                {/* Experience Section */}
                 <div className="mb-16">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-bold text-white">Experience</h2>
@@ -381,12 +373,12 @@ export default function About() {
                                         <Trash2 size={14} />
                                     </button>
                                 )}
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex-1">
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3 gap-2">
+                                    <div>
                                         <h3 className="text-xl font-bold text-white">{exp.title}</h3>
                                         <p className="text-zinc-500 text-sm">{exp.company}</p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-left md:text-right">
                                         <p className="text-xs font-mono text-zinc-400">
                                             {formatDate(exp.start_date)} - {exp.current ? "Present" : formatDate(exp.end_date)}
                                         </p>
@@ -395,7 +387,7 @@ export default function About() {
                                         </p>
                                     </div>
                                 </div>
-                                <p className="text-zinc-400 text-sm">{exp.description}</p>
+                                <p className="text-zinc-400 text-sm whitespace-pre-wrap">{exp.description}</p>
                             </div>
                         ))}
                     </div>
@@ -465,7 +457,7 @@ export default function About() {
                     )}
                 </div>
 
-                {/* Timeline Section - keeping existing code */}
+                {/* Timeline Section */}
                 <div className="mb-16">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-bold text-white">Timeline</h2>
@@ -479,68 +471,91 @@ export default function About() {
                         )}
                     </div>
 
-                    <div className="space-y-12 border-l border-zinc-800 pl-8 ml-4 relative">
+                    <div className="relative border-l border-zinc-800 ml-3 space-y-8">
                         {sortedTimeline.map((item) => (
-                            <div key={item.id} className="relative">
+                            <div key={item.id} className="ml-8 relative group">
+                                <div className="absolute -left-[41px] top-1 w-5 h-5 bg-black border-2 border-zinc-600 rounded-full group-hover:border-white transition-colors" />
                                 {editSection === "timeline" && (
                                     <button
                                         onClick={() => deleteTimelineItem(item.id)}
-                                        className="absolute -right-12 top-0 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                                        className="absolute top-0 right-0 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                                     >
                                         <Trash2 size={14} />
                                     </button>
                                 )}
-                                <div className="absolute -left-[37px] top-1.5 w-3 h-3 rounded-full bg-white ring-4 ring-black" />
-                                <span className="text-xs font-mono text-zinc-500 mb-2 block">{formatDate(item.date)}</span>
-                                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-                                <p className="text-zinc-500">{item.description}</p>
+                                <span className="text-sm font-mono text-zinc-500 block mb-1">
+                                    {formatDate(item.start_date)} - {item.current ? "Present" : formatDate(item.end_date)}
+                                    <span className="ml-2 text-zinc-600">({calculateDuration(item.start_date, item.end_date, item.current)})</span>
+                                </span>
+                                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                                <p className="text-zinc-400 text-sm">{item.description}</p>
                             </div>
                         ))}
                     </div>
 
                     {editSection === "timeline" && (
-                        <div className="mt-6 bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-4">
-                            <h3 className="font-bold text-white mb-4">Add Timeline Item</h3>
-                            <div>
-                                <label className="block text-xs text-zinc-500 mb-2">Date</label>
+                        <div className="mt-8 bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-4">
+                            <h3 className="font-bold text-white mb-4">Add Timeline Event</h3>
+                            <input
+                                placeholder="Title (e.g., Graduated University)"
+                                value={newTimelineItem.title}
+                                onChange={e => setNewTimelineItem({ ...newTimelineItem, title: e.target.value })}
+                                className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
+                            />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs text-zinc-500 mb-2">Start Date</label>
+                                    <input
+                                        type="month"
+                                        value={newTimelineItem.start_date}
+                                        onChange={e => setNewTimelineItem({ ...newTimelineItem, start_date: e.target.value })}
+                                        className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-zinc-500 mb-2">End Date</label>
+                                    <input
+                                        type="month"
+                                        value={newTimelineItem.end_date}
+                                        onChange={e => setNewTimelineItem({ ...newTimelineItem, end_date: e.target.value })}
+                                        disabled={newTimelineItem.current}
+                                        className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors disabled:opacity-50"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-black border border-zinc-800 rounded-xl">
                                 <input
-                                    type="month"
-                                    value={newTimelineItem.date}
-                                    onChange={e => setNewTimelineItem({ ...newTimelineItem, date: e.target.value })}
-                                    className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
+                                    type="checkbox"
+                                    id="timeline-current"
+                                    checked={newTimelineItem.current}
+                                    onChange={e => setNewTimelineItem({ ...newTimelineItem, current: e.target.checked, end_date: e.target.checked ? "" : newTimelineItem.end_date })}
+                                    className="w-4 h-4"
                                 />
+                                <label htmlFor="timeline-current" className="text-sm text-zinc-400 cursor-pointer">
+                                    Currently ongoing
+                                </label>
                             </div>
-                            <div>
-                                <label className="block text-xs text-zinc-500 mb-2">Title</label>
-                                <input
-                                    placeholder="e.g., Started B.Tech"
-                                    value={newTimelineItem.title}
-                                    onChange={e => setNewTimelineItem({ ...newTimelineItem, title: e.target.value })}
-                                    className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-zinc-500 mb-2">Description</label>
-                                <textarea
-                                    placeholder="Brief description of this milestone"
-                                    rows={2}
-                                    value={newTimelineItem.description}
-                                    onChange={e => setNewTimelineItem({ ...newTimelineItem, description: e.target.value })}
-                                    className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors resize-none"
-                                />
-                            </div>
+
+                            <textarea
+                                placeholder="Description"
+                                rows={2}
+                                value={newTimelineItem.description}
+                                onChange={e => setNewTimelineItem({ ...newTimelineItem, description: e.target.value })}
+                                className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors resize-none"
+                            />
                             <button
                                 onClick={addTimelineItem}
                                 className="w-full bg-white text-black py-3 rounded-xl font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
                             >
-                                <Plus size={18} /> Add Timeline Item
+                                <Plus size={18} /> Add Event
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Skills Section - NEW with dynamic categories */}
-                <div>
+                {/* Skills Section */}
+                <div className="mb-16">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-bold text-white">Skills</h2>
                         {isEditing && (
@@ -556,9 +571,6 @@ export default function About() {
                     {skillCategories.length === 0 ? (
                         <div className="text-center py-12 bg-zinc-950 border border-zinc-900 rounded-2xl">
                             <p className="text-zinc-500 mb-4">No skill categories yet.</p>
-                            {isEditing && editSection === "skills" && (
-                                <p className="text-zinc-600 text-sm">Add a category below to get started.</p>
-                            )}
                         </div>
                     ) : (
                         <div className="space-y-8">
@@ -650,6 +662,76 @@ export default function About() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Testimonials Section */}
+                <div>
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-2xl font-bold text-white">Testimonials</h2>
+                        {isEditing && (
+                            <button
+                                onClick={() => setEditSection(editSection === "testimonials" ? null : "testimonials")}
+                                className="text-sm bg-white text-black px-4 py-2 rounded-full font-bold hover:bg-zinc-200 transition-colors"
+                            >
+                                {editSection === "testimonials" ? "Done" : "Edit"}
+                            </button>
+                        )}
+                    </div>
+
+                    {testimonials.length === 0 ? (
+                        <p className="text-zinc-600 italic">No testimonials yet.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {testimonials.map((t) => (
+                                <div key={t.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl relative group">
+                                    {editSection === "testimonials" && (
+                                        <button
+                                            onClick={() => deleteTestimonial(t.id)}
+                                            className="absolute top-4 right-4 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                    <p className="text-zinc-300 italic mb-4">"{t.text}"</p>
+                                    <div>
+                                        <h4 className="font-bold text-white">{t.client_name}</h4>
+                                        <p className="text-zinc-500 text-sm">{t.role}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {editSection === "testimonials" && (
+                        <div className="mt-6 bg-zinc-950 border border-zinc-800 rounded-2xl p-6 space-y-4">
+                            <h3 className="font-bold text-white mb-4">Add Testimonial</h3>
+                            <input
+                                placeholder="Client Name"
+                                value={newTestimonial.client_name}
+                                onChange={e => setNewTestimonial({ ...newTestimonial, client_name: e.target.value })}
+                                className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
+                            />
+                            <input
+                                placeholder="Role / Company"
+                                value={newTestimonial.role}
+                                onChange={e => setNewTestimonial({ ...newTestimonial, role: e.target.value })}
+                                className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors"
+                            />
+                            <textarea
+                                placeholder="Testimonial Text"
+                                rows={3}
+                                value={newTestimonial.text}
+                                onChange={e => setNewTestimonial({ ...newTestimonial, text: e.target.value })}
+                                className="w-full p-3 bg-black border border-zinc-800 rounded-xl text-white focus:border-white outline-none transition-colors resize-none"
+                            />
+                            <button
+                                onClick={addTestimonial}
+                                className="w-full bg-white text-black py-3 rounded-xl font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Plus size={18} /> Add Testimonial
+                            </button>
                         </div>
                     )}
                 </div>

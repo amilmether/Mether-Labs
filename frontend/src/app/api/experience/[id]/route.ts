@@ -11,18 +11,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         const { id } = await params;
         const body = await request.json();
-        const category = await prisma.skillCategory.update({
+        const experience = await prisma.experience.update({
             where: { id: parseInt(id) },
             data: {
-                name: body.name,
-                display_order: body.display_order,
+                title: body.title,
+                company: body.company,
+                start_date: body.start_date,
+                end_date: body.end_date,
+                current: body.current || false,
+                description: body.description,
             },
-            include: { skills: true },
         });
 
-        return NextResponse.json(category);
+        return NextResponse.json(experience);
     } catch (error) {
-        console.error("Skill Category update error:", error);
+        console.error("Experience update error:", error);
         return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
 }
@@ -36,13 +39,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         const { id } = await params;
 
-        await prisma.skillCategory.delete({
+        await prisma.experience.delete({
             where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });
     } catch (error) {
-        console.error("Skill Category delete error:", error);
+        console.error("Experience delete error:", error);
         return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
 }

@@ -35,11 +35,19 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
+        // Ensure deliverables and stack are arrays
+        const deliverables = Array.isArray(body.deliverables) ? body.deliverables : [];
+        const stack = Array.isArray(body.stack) ? body.stack : [];
+
         const service = await prisma.service.create({
             data: {
-                ...body,
-                deliverables: JSON.stringify(body.deliverables),
-                stack: JSON.stringify(body.stack),
+                title: body.title,
+                short_description: body.short_description,
+                detailed_description: body.detailed_description || '',
+                price_from: body.price_from,
+                is_active: body.is_active ?? true,
+                deliverables: JSON.stringify(deliverables),
+                stack: JSON.stringify(stack),
             },
         });
 

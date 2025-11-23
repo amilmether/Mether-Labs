@@ -4,7 +4,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -15,14 +15,23 @@ export async function PUT(
             );
         }
 
+        const { id } = await params;
         const body = await request.json();
 
+        // Ensure deliverables and stack are arrays
+        const deliverables = Array.isArray(body.deliverables) ? body.deliverables : [];
+        const stack = Array.isArray(body.stack) ? body.stack : [];
+
         const service = await prisma.service.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
             data: {
-                ...body,
-                deliverables: JSON.stringify(body.deliverables),
-                stack: JSON.stringify(body.stack),
+                title: body.title,
+                short_description: body.short_description,
+                detailed_description: body.detailed_description || '',
+                price_from: body.price_from,
+                is_active: body.is_active ?? true,
+                deliverables: JSON.stringify(deliverables),
+                stack: JSON.stringify(stack),
             },
         });
 
@@ -32,6 +41,7 @@ export async function PUT(
             stack: JSON.parse(service.stack),
         });
     } catch (error) {
+        console.error("PUT Service Error:", error);
         return NextResponse.json(
             { detail: 'Internal server error' },
             { status: 500 }
@@ -41,7 +51,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -52,12 +62,15 @@ export async function DELETE(
             );
         }
 
+        const { id } = await params;
+
         await prisma.service.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });
     } catch (error) {
+        console.error("DELETE Service Error:", error);
         return NextResponse.json(
             { detail: 'Internal server error' },
             { status: 500 }

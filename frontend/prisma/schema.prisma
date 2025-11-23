@@ -85,8 +85,10 @@ model Experience {
 }
 
 model TimelineItem {
-  id          Int    @id @default(autoincrement())
-  date        String
+  id          Int     @id @default(autoincrement())
+  start_date  String
+  end_date    String?
+  current     Boolean @default(false)
   title       String
   description String
 }

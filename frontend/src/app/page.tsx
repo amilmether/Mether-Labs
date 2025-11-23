@@ -13,10 +13,21 @@ export default function Home() {
   const isEditMode = searchParams.get("edit") === "true";
 
   const [featuredProjects, setFeaturedProjects] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     fetchProjects();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await axios.get("/api/profile");
+      setProfile(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchProjects = () => {
     axios.get("/api/projects?featured=true")
@@ -43,13 +54,23 @@ export default function Home() {
 
       {/* Edit Mode Indicator */}
       {isEditMode && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-white text-black px-6 py-3 rounded-full font-mono text-sm shadow-2xl border-2 border-zinc-800">
-          ✏️ EDIT MODE ACTIVE
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-white text-black px-6 py-3 rounded-full font-mono text-sm shadow-2xl border-2 border-zinc-800 flex items-center gap-4">
+          <span>✏️ EDIT MODE ACTIVE</span>
+          <Link href="/admin" className="underline hover:no-underline">Go to Admin</Link>
         </div>
       )}
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-32">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-32 relative">
+        {isEditMode && (
+          <Link
+            href="/contact?edit=true"
+            className="absolute top-32 right-4 bg-zinc-800 p-2 rounded-full text-white hover:bg-zinc-700 transition-colors"
+            title="Edit Profile Info"
+          >
+            <Edit2 size={20} />
+          </Link>
+        )}
         <div className="max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -58,11 +79,11 @@ export default function Home() {
           >
             <div className="text-sm font-mono text-zinc-500 mb-4">{'>'} initializing_profile.exe</div>
             <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-white mb-6">
-              Amil Mether
+              {profile?.name || "Amil Mether"}
             </h1>
             <p className="text-2xl md:text-3xl text-zinc-400 font-light leading-relaxed mb-10">
-              Full Stack Engineer & <br />
-              <span className="text-white font-medium">IoT Specialist</span>
+              {profile?.bio || "Full Stack Engineer"} <br />
+              <span className="text-white font-medium">{profile?.role || "IoT Specialist"}</span>
             </p>
           </motion.div>
 

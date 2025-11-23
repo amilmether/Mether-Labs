@@ -5,7 +5,7 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 export async function GET() {
     try {
         const items = await prisma.timelineItem.findMany({
-            orderBy: { date: 'desc' },
+            orderBy: { start_date: 'desc' },
         });
 
         return NextResponse.json(items);

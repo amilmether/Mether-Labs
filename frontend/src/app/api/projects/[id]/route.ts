@@ -4,11 +4,12 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const project = await prisma.project.findUnique({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         if (!project) {
@@ -33,7 +34,7 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -44,6 +45,7 @@ export async function PUT(
             );
         }
 
+        const { id } = await params;
         const body = await request.json();
 
         // Ensure stack and images are arrays
@@ -51,7 +53,7 @@ export async function PUT(
         const images = Array.isArray(body.images) ? body.images : [];
 
         const project = await prisma.project.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
             data: {
                 title: body.title,
                 slug: body.slug,
@@ -83,7 +85,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const token = getTokenFromRequest(request);
@@ -94,12 +96,15 @@ export async function DELETE(
             );
         }
 
+        const { id } = await params;
+
         await prisma.project.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
         });
 
         return NextResponse.json({ ok: true });
     } catch (error) {
+        console.error('Project delete error:', error);
         return NextResponse.json(
             { detail: 'Internal server error' },
             { status: 500 }

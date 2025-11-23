@@ -97,12 +97,13 @@ export default function ServicesManager() {
             });
             fetchServices();
         } catch (err: any) {
+            console.error("Delete error:", err);
             if (err.response?.status === 401) {
                 alert("Session expired. Please login again.");
                 localStorage.removeItem("token");
                 router.push("/admin/login");
             } else {
-                alert("Delete failed");
+                alert("Delete failed: " + (err.response?.data?.detail || err.message));
             }
         }
     };
@@ -113,9 +114,9 @@ export default function ServicesManager() {
             title: service.title,
             short_description: service.short_description,
             detailed_description: service.detailed_description || "",
-            deliverables: service.deliverables.join(", "),
+            deliverables: Array.isArray(service.deliverables) ? service.deliverables.join(", ") : service.deliverables || "",
             price_from: service.price_from,
-            stack: service.stack ? service.stack.join(", ") : "",
+            stack: Array.isArray(service.stack) ? service.stack.join(", ") : service.stack || "",
             is_active: service.is_active
         });
         setIsModalOpen(true);

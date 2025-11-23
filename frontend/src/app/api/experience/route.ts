@@ -4,11 +4,10 @@ import { getTokenFromRequest, verifyToken } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const categories = await prisma.skillCategory.findMany({
-            include: { skills: true },
-            orderBy: { display_order: 'asc' },
+        const experience = await prisma.experience.findMany({
+            orderBy: { id: 'desc' }, // Or sort by start_date if I parse it
         });
-        return NextResponse.json(categories);
+        return NextResponse.json(experience);
     } catch (error) {
         return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
@@ -22,15 +21,18 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const category = await prisma.skillCategory.create({
+        const experience = await prisma.experience.create({
             data: {
-                name: body.name,
-                display_order: body.display_order || 0,
+                title: body.title,
+                company: body.company,
+                start_date: body.start_date,
+                end_date: body.end_date,
+                current: body.current || false,
+                description: body.description,
             },
-            include: { skills: true },
         });
 
-        return NextResponse.json(category);
+        return NextResponse.json(experience);
     } catch (error) {
         return NextResponse.json({ detail: 'Internal server error' }, { status: 500 });
     }
