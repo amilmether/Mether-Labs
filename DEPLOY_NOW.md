@@ -10,17 +10,22 @@ Removed `prisma db push` from the build script because Vercel build servers also
 
 Go to Vercel → Your Project → Settings → Environment Variables
 
-**Update `DATABASE_URL` to use the POOLER:**
+**Update `DATABASE_URL` to use the TRANSACTION POOLER:**
 
 ```
-DATABASE_URL=postgresql://postgres.thgaxpgxvpgmdzdaijts:[YOUR_PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://postgres:[YOUR_PASSWORD]@db.thgaxpgxvpgmdzdaijts.supabase.co:6543/postgres
 ```
 
-**To get this:**
+**Important Notes:**
+- Use port **6543** (not 5432)
+- Format: `postgres://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:6543/postgres`
+- The `pgbouncer=true` parameter is added automatically by the code
+
+**To get your connection string:**
 1. Supabase Dashboard → Project Settings → Database
-2. Scroll to **Connection Pooling**
-3. Select **Transaction** mode
-4. Copy the URI
+2. Click **Connection string** → Select **Transaction pooler**
+3. Copy the URI (it will have port 6543)
+4. Replace `[YOUR_PASSWORD]` with your actual database password
 
 ### Step 2: Push Code & Deploy
 
